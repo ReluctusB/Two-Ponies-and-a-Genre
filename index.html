@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang = "en">
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<title>Two Ponies and a Genre</title>
+
+		<style>
+
+			#promptOut {
+				list-style-type: none;
+				padding:  0;
+				margin:  0;
+			}
+
+			#promptOut .prompt {
+				font-size:  14pt;
+				padding:  1rem;
+			}
+
+		</style>
+
+		<script>
+
+			var listObject = null;
+
+			function eleBuilder(eleStr, propObj) {
+			    const ele = document.createElement(eleStr);
+			    if (propObj.class) {ele.className = propObj.class;}
+			    if (propObj.HTML) {ele.innerHTML = propObj.HTML;}
+			    if (propObj.text) {ele.innerText = propObj.text;}
+			    if (propObj.id) {ele.id = propObj.id;}
+			    if (propObj.type) {ele.type = propObj.type;}
+			    if (propObj.event) {ele.addEventListener(propObj.event[0], propObj.event[1], false);}
+			    return ele;
+			}
+
+			function loadJSON(callback) { 
+			    const xobj = new XMLHttpRequest();
+			    xobj.overrideMimeType("application/json");
+			    xobj.open('GET', 'lists.json', false);
+			    xobj.onreadystatechange = () => {
+		        	if (xobj.readyState == 4 && xobj.status == "200") {
+		          		callback(JSON.parse(xobj.responseText));
+		          	}
+			    };
+			    xobj.send(null);
+			}
+
+			function getPrompt(num = 1) {
+				if (!listObject) {
+					loadJSON(response => {
+						listObject = response;
+						rollPrompt(listObject, num);
+					});
+				} else {
+					rollPrompt(listObject, num);
+				}
+			}
+
+			function rollPrompt(response, num) {
+
+				function selectRandomWord(wordList) {
+					const max = wordList.length - 1;
+					return wordList[Math.floor(Math.random() * (max + 1))];
+				}
+
+				document.getElementById("promptOut").innerHTML = "";
+
+				const charList = response.characters;
+				const genreList = response.genres;
+
+				for (let i = 0; i < num; i++) {
+					let charOne = selectRandomWord(charList);
+					let charTwo = selectRandomWord(charList);
+					while (charTwo == charOne) {
+						charTwo = selectRandomWord(charList);
+					}
+					let genre = selectRandomWord(genreList);
+
+					const outString = charOne + " / " + charTwo + " / " + genre;
+					const listItem = eleBuilder("LI", {text: outString, class: "prompt"});
+
+					document.getElementById("promptOut").appendChild(listItem);
+				}
+			}
+
+		</script>
+	</head>
+	<body>
+		<div style="text-align:center">
+			<h1>Two Ponies and a Genre</h1>
+			<div>
+				<button onclick="getPrompt()">Generate 1</button> 
+				<button onclick="getPrompt(5)">Generate 5</button>
+				<button onclick="getPrompt(10)">Generate 10</button>
+
+			</div>
+			<div>
+				<ul id="promptOut">
+
+				</ul>
+			</div>
+		</div>
+	</body>
+</html>
